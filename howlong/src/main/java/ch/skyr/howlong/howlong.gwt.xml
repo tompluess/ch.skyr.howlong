@@ -16,10 +16,13 @@
 	
 	<!--  here you can set mgwt.os to a specific platform -->
 	<!-- <set-property name="mgwt.os" value="android" /> -->
-	
+	<!-- LIMIT - NOT FOR PRODUCTION -->
+    <set-property name="mgwt.os" value="retina" />  
+    	
 	<!-- here you can turn off css obfuscation -->
 	<!--<set-configuration-property name="mgwt.css" value="pretty" /> -->
-
+	<!-- PRETTY CSS - NOT FOR PRODUCTION -->
+    <set-configuration-property name="mgwt.css" value="pretty" />
 
 	<entry-point class="ch.skyr.howlong.client.MgwtAppEntryPoint" />
 	

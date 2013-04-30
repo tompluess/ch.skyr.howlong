@@ -15,6 +15,7 @@
  */
 package ch.skyr.howlong.client;
 
+import ch.skyr.howlong.client.activities.HomePlace;
 import ch.skyr.howlong.client.css.AppBundle;
 
 import com.google.gwt.activity.shared.ActivityMapper;
@@ -33,12 +34,16 @@ import com.googlecode.gwtphonegap.client.PhoneGapTimeoutEvent;
 import com.googlecode.gwtphonegap.client.PhoneGapTimeoutHandler;
 import com.googlecode.mgwt.mvp.client.AnimatableDisplay;
 import com.googlecode.mgwt.mvp.client.AnimatingActivityManager;
+import com.googlecode.mgwt.mvp.client.Animation;
 import com.googlecode.mgwt.mvp.client.AnimationMapper;
 import com.googlecode.mgwt.ui.client.MGWT;
 import com.googlecode.mgwt.ui.client.MGWTSettings;
+import com.googlecode.mgwt.ui.client.animation.AnimationHelper;
 import com.googlecode.mgwt.ui.client.dialog.TabletPortraitOverlay;
 import com.googlecode.mgwt.ui.client.layout.MasterRegionHandler;
 import com.googlecode.mgwt.ui.client.layout.OrientationRegionHandler;
+import com.googlecode.mgwt.ui.client.widget.Button;
+import com.googlecode.mgwt.ui.client.widget.LayoutPanel;
 
 /**
  * @author Daniel Kurka
@@ -61,7 +66,7 @@ public class MgwtAppEntryPoint implements EntryPoint {
 
 		historyHandler.register(clientFactory.getPlaceController(),
 				clientFactory.getEventBus(),
-				new ch.skyr.howlong.client.activities.HomePlace());
+				new HomePlace());
 
 		if ((MGWT.getOsDetection().isTablet())) {
 			// very nasty workaround because GWT does not corretly support
@@ -140,9 +145,29 @@ public class MgwtAppEntryPoint implements EntryPoint {
 		RootPanel.get().add(mainContainer);
 
 	}
+	
+	
+	  public void onModuleLoad() {
+		    // set viewport and other settings for mobile
+		    MGWT.applySettings(MGWTSettings.getAppSetting());
 
-	@Override
-	public void onModuleLoad() {
+		    // build animation helper and attach it
+		    AnimationHelper animationHelper = new AnimationHelper();
+		    RootPanel.get().add(animationHelper);
+
+		    // build some UI
+		    LayoutPanel layoutPanel = new LayoutPanel();
+		    Button button = new Button("Hello mgwt");
+		    layoutPanel.add(button);
+
+		    // animate
+		    animationHelper.goTo(layoutPanel, Animation.SLIDE);
+
+		  }
+
+
+	
+	public void onModuleLoad1() {
 
 		GWT.setUncaughtExceptionHandler(new GWT.UncaughtExceptionHandler() {
 
