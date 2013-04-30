@@ -14,6 +14,16 @@
 	</properties>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/java</directory>
+				<includes>
+					<include>**/client/**</include>
+					<include>**/*.gwt.xml</include>
+				</includes>
+			</resource>
+		</resources>
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -24,6 +34,7 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-eclipse-plugin</artifactId>
@@ -57,25 +68,25 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>gwt-maven-plugin</artifactId>
 				<version>2.4.0</version>
 				<executions>
-
 					<execution>
 						<id>compile gwt</id>
 						<goals>
 							<goal>compile</goal>
 						</goals>
 					</execution>
-
 				</executions>
-				
+
 				<configuration>
-				   <runTarget>index.html</runTarget>
-				 </configuration>
+					<runTarget>index.html</runTarget>
+				</configuration>
 			</plugin>
+
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>
@@ -95,15 +106,6 @@
 			</plugin>
 
 		</plugins>
-		<resources>
-			<resource>
-				<directory>src/main/java</directory>
-				<includes>
-					<include>**/client/**</include>
-					<include>**/*.gwt.xml</include>
-				</includes>
-			</resource>
-		</resources>
 	</build>
 
 	<dependencies>
@@ -111,13 +113,13 @@
 		<dependency>
 			<groupId>com.googlecode.mgwt</groupId>
 			<artifactId>mgwt</artifactId>
-			<version>1.1.1</version>
+			<version>1.1.2</version>
 		</dependency>
 		<!-- gwtphonegap dependency -->
 		<dependency>
 			<groupId>com.googlecode.gwtphonegap</groupId>
 			<artifactId>gwtphonegap</artifactId>
-			<version>2.0.0.0</version>
+			<version>2.4.0.0</version>
 		</dependency>
 
 		<dependency>
