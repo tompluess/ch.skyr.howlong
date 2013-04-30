@@ -15,8 +15,6 @@
  */
 package ch.skyr.howlong.client;
 
-import org.apache.commons.lang.StringUtils;
-
 import ch.skyr.howlong.client.activities.HomePlace;
 import ch.skyr.howlong.client.css.AppBundle;
 
