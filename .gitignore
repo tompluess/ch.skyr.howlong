@@ -1,2 +1,14 @@
 
 .DS_Store
+
+xcode/www/*.html
+
+xcode/www/*.js
+
+xcode/www/**/*.gwt.rpc
+
+xcode/www/**/*.html
+
+xcode/www/**/*.js
+
+xcode/www/**/*.gif
