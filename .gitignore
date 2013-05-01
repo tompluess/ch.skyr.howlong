@@ -12,3 +12,5 @@ xcode/www/**/*.html
 xcode/www/**/*.js
 
 xcode/www/**/*.gif
+
+xcode/www/howlong/js/gwt-openlayers/util.js

@@ -15,6 +15,14 @@
  */
 package ch.skyr.howlong.client;
 
+import org.gwtopenmaps.openlayers.client.LonLat;
+import org.gwtopenmaps.openlayers.client.Map;
+import org.gwtopenmaps.openlayers.client.MapOptions;
+import org.gwtopenmaps.openlayers.client.MapWidget;
+import org.gwtopenmaps.openlayers.client.control.LayerSwitcher;
+import org.gwtopenmaps.openlayers.client.control.MousePosition;
+import org.gwtopenmaps.openlayers.client.layer.OSM;
+
 import ch.skyr.howlong.client.activities.HomePlace;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -114,6 +122,7 @@ public class MgwtAppEntryPoint implements EntryPoint {
         logTextArea.setVisibleLines(4);
         logTextArea.setWidth("100%");
         layoutPanel.add(logTextArea);
+        addMap(layoutPanel);
         RootPanel.get().add(layoutPanel);
 
         GWT.setUncaughtExceptionHandler(new GWT.UncaughtExceptionHandler() {
@@ -181,6 +190,73 @@ public class MgwtAppEntryPoint implements EntryPoint {
             }
         }.schedule(1);
     }
+
+    private void addMap(final LayoutPanel layoutPanel) {
+        // build some UI
+        MapOptions defaultMapOptions = new MapOptions();
+        MapWidget mapWidget = new MapWidget("800px", "600px", defaultMapOptions);
+
+        OSM osm_2 = OSM.Mapnik("Mapnik"); // Label for menu 'LayerSwitcher'
+        osm_2.setIsBaseLayer(true);
+
+        OSM osm_3 = OSM.CycleMap("CycleMap");
+        osm_3.setIsBaseLayer(true);
+
+        // OSM osm_4 = OSM.Maplint("Maplint");
+        // osm_4.setIsBaseLayer(true);
+
+        Map map = mapWidget.getMap();
+        map.addLayer(osm_2);
+        map.addLayer(osm_3);
+        // map.addLayer(osm_4);
+        map.addControl(new LayerSwitcher());
+        map.addControl(new MousePosition());
+
+        // map.setCenter(new LonLat(6.95, 50.94), 12); // Warning: In the case
+        // of OSM-Layers the method 'setCenter()' uses Gauss-Krueger
+        // coordinates,
+        // thus we have to transform normal latitude/longitude values into this
+        // projection first:
+        LonLat lonLat = new LonLat(6.95, 50.94); // (6.95, 50.94) --> (773670.4,
+                                                 // 6610687.2)
+        lonLat.transform("EPSG:4326", "EPSG:900913"); //
+        map.setCenter(lonLat, 12); // see
+                                   // http://docs.openlayers.org/library/spherical_mercator.html
+
+        layoutPanel.add(mapWidget);
+        logMessageUI("map added.");
+    }
+
+    // using google maps
+    // private void addMap(final LayoutPanel layoutPanel) {
+    // // build some UI
+    // Maps.loadMapsApi("", "2", false, new Runnable() {
+    // @Override
+    // public void run() {
+    // // Open a map centered on Satu Mare, Romania
+    // LatLng SatuMareCity = LatLng.newInstance(47.792091, 22.885189);
+    //
+    // final MapWidget map = new MapWidget(SatuMareCity, 2);
+    // map.setSize("100%", "100%");
+    // // Add some controls for the zoom level
+    // map.addControl(new LargeMapControl());
+    //
+    // // Add a marker
+    // map.addOverlay(new Marker(SatuMareCity));
+    //
+    // // Add an info window to highlight a point of interest
+    // map.getInfoWindow()
+    // .open(map.getCenter(), new
+    // InfoWindowContent("The River Somes is here in Satu Mare"));
+    //
+    // final DockLayoutPanel dock = new DockLayoutPanel(Unit.PX);
+    // dock.addNorth(map, 500);
+    //
+    // // Add the map to the HTML host page
+    // layoutPanel.add(dock);
+    // }
+    // });
+    // }
 
     private void logMessageUI(String newMessage) {
         StringBuilder sb = new StringBuilder();
