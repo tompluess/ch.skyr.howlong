@@ -16,17 +16,13 @@
 package ch.skyr.howlong.client;
 
 import ch.skyr.howlong.client.activities.HomePlace;
-import ch.skyr.howlong.client.css.AppBundle;
 
-import com.google.gwt.activity.shared.ActivityMapper;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.StyleInjector;
 import com.google.gwt.place.shared.PlaceHistoryHandler;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.TextArea;
 import com.googlecode.gwtphonegap.client.PhoneGap;
 import com.googlecode.gwtphonegap.client.PhoneGapAvailableEvent;
@@ -40,13 +36,9 @@ import com.googlecode.gwtphonegap.client.geolocation.PositionError;
 import com.googlecode.mgwt.mvp.client.AnimatableDisplay;
 import com.googlecode.mgwt.mvp.client.AnimatingActivityManager;
 import com.googlecode.mgwt.mvp.client.Animation;
-import com.googlecode.mgwt.mvp.client.AnimationMapper;
 import com.googlecode.mgwt.ui.client.MGWT;
 import com.googlecode.mgwt.ui.client.MGWTSettings;
 import com.googlecode.mgwt.ui.client.animation.AnimationHelper;
-import com.googlecode.mgwt.ui.client.dialog.TabletPortraitOverlay;
-import com.googlecode.mgwt.ui.client.layout.MasterRegionHandler;
-import com.googlecode.mgwt.ui.client.layout.OrientationRegionHandler;
 import com.googlecode.mgwt.ui.client.widget.Button;
 import com.googlecode.mgwt.ui.client.widget.LayoutPanel;
 
@@ -56,216 +48,157 @@ import com.googlecode.mgwt.ui.client.widget.LayoutPanel;
  */
 public class MgwtAppEntryPoint implements EntryPoint {
 
-	private TextArea logTextArea;
-	private int LIMIT_LOG = 1000;
+    private TextArea logTextArea;
+    private final int LIMIT_LOG = 1000;
 
-	private void start() {
+    private void start() {
 
-		// set viewport and other settings for mobile
-		MGWT.applySettings(MGWTSettings.getAppSetting());
+        // set viewport and other settings for mobile
+        MGWT.applySettings(MGWTSettings.getAppSetting());
 
-		final ClientFactory clientFactory = new ClientFactoryImpl();
+        final ClientFactory clientFactory = new ClientFactoryImpl();
 
-		// Start PlaceHistoryHandler with our PlaceHistoryMapper
-		AppPlaceHistoryMapper historyMapper = GWT
-				.create(AppPlaceHistoryMapper.class);
-		final PlaceHistoryHandler historyHandler = new PlaceHistoryHandler(
-				historyMapper);
+        // Start PlaceHistoryHandler with our PlaceHistoryMapper
+        AppPlaceHistoryMapper historyMapper = GWT.create(AppPlaceHistoryMapper.class);
+        final PlaceHistoryHandler historyHandler = new PlaceHistoryHandler(historyMapper);
 
-		historyHandler.register(clientFactory.getPlaceController(),
-				clientFactory.getEventBus(), new HomePlace());
+        historyHandler.register(clientFactory.getPlaceController(), clientFactory.getEventBus(), new HomePlace());
 
-		if ((MGWT.getOsDetection().isTablet())) {
-			// very nasty workaround because GWT does not corretly support
-			// @media
-			StyleInjector.inject(AppBundle.INSTANCE.css().getText());
+        createPhoneDisplay(clientFactory);
 
-			createTabletDisplay(clientFactory);
-		} else {
-			createPhoneDisplay(clientFactory);
+        historyHandler.handleCurrentHistory();
 
-		}
-		historyHandler.handleCurrentHistory();
+    }
 
-	}
+    private void createPhoneDisplay(ClientFactory clientFactory) {
+        AnimatableDisplay display = GWT.create(AnimatableDisplay.class);
 
-	private void createPhoneDisplay(ClientFactory clientFactory) {
-		AnimatableDisplay display = GWT.create(AnimatableDisplay.class);
+        PhoneActivityMapper appActivityMapper = new PhoneActivityMapper(clientFactory);
 
-		PhoneActivityMapper appActivityMapper = new PhoneActivityMapper(
-				clientFactory);
+        PhoneAnimationMapper appAnimationMapper = new PhoneAnimationMapper();
 
-		PhoneAnimationMapper appAnimationMapper = new PhoneAnimationMapper();
+        AnimatingActivityManager activityManager = new AnimatingActivityManager(appActivityMapper, appAnimationMapper,
+                clientFactory.getEventBus());
 
-		AnimatingActivityManager activityManager = new AnimatingActivityManager(
-				appActivityMapper, appAnimationMapper,
-				clientFactory.getEventBus());
+        activityManager.setDisplay(display);
 
-		activityManager.setDisplay(display);
+        RootPanel.get().add(display);
 
-		RootPanel.get().add(display);
+    }
 
-	}
+    // public void onModuleLoad() {
+    public void onModuleLoad_singleButton() {
+        // set viewport and other settings for mobile
+        MGWT.applySettings(MGWTSettings.getAppSetting());
 
-	private void createTabletDisplay(ClientFactory clientFactory) {
-		SimplePanel navContainer = new SimplePanel();
-		navContainer.getElement().setId("nav");
-		navContainer.getElement().addClassName("landscapeonly");
-		AnimatableDisplay navDisplay = GWT.create(AnimatableDisplay.class);
+        // build animation helper and attach it
+        AnimationHelper animationHelper = new AnimationHelper();
+        RootPanel.get().add(animationHelper);
 
-		final TabletPortraitOverlay tabletPortraitOverlay = new TabletPortraitOverlay();
+        // build some UI
+        LayoutPanel layoutPanel = new LayoutPanel();
+        Button button = new Button("Hello mgwt");
+        layoutPanel.add(button);
 
-		new OrientationRegionHandler(navContainer, tabletPortraitOverlay,
-				navDisplay);
-		new MasterRegionHandler(clientFactory.getEventBus(), "nav",
-				tabletPortraitOverlay);
+        // animate
+        animationHelper.goTo(layoutPanel, Animation.SLIDE);
 
-		ActivityMapper navActivityMapper = new TabletNavActivityMapper(
-				clientFactory);
+    }
 
-		AnimationMapper navAnimationMapper = new TabletNavAnimationMapper();
+    @Override
+    public void onModuleLoad() {
 
-		AnimatingActivityManager navActivityManager = new AnimatingActivityManager(
-				navActivityMapper, navAnimationMapper,
-				clientFactory.getEventBus());
+        // build some UI
+        LayoutPanel layoutPanel = new LayoutPanel();
+        logTextArea = new TextArea();
+        logTextArea.setVisibleLines(4);
+        logTextArea.setWidth("100%");
+        layoutPanel.add(logTextArea);
+        RootPanel.get().add(layoutPanel);
 
-		navActivityManager.setDisplay(navDisplay);
+        GWT.setUncaughtExceptionHandler(new GWT.UncaughtExceptionHandler() {
+            @Override
+            public void onUncaughtException(Throwable e) {
+                Window.alert("uncaught: " + e.getLocalizedMessage());
+                Window.alert(e.getMessage());
+                // log.log(Level.SEVERE, "uncaught exception", e);
+                handleExceptionUI(e);
+            }
+        });
 
-		RootPanel.get().add(navContainer);
+        final PhoneGap phoneGap = GWT.create(PhoneGap.class);
 
-		SimplePanel mainContainer = new SimplePanel();
-		mainContainer.getElement().setId("main");
-		AnimatableDisplay mainDisplay = GWT.create(AnimatableDisplay.class);
+        phoneGap.addHandler(new PhoneGapAvailableHandler() {
 
-		TabletMainActivityMapper tabletMainActivityMapper = new TabletMainActivityMapper(
-				clientFactory);
+            @Override
+            public void onPhoneGapAvailable(PhoneGapAvailableEvent event) {
+                // startShowCase(phoneGap);
 
-		AnimationMapper tabletMainAnimationMapper = new TabletMainAnimationMapper();
+                logMessageUI("phone gap event: " + event.getClass() + ": " + event);
 
-		AnimatingActivityManager mainActivityManager = new AnimatingActivityManager(
-				tabletMainActivityMapper, tabletMainAnimationMapper,
-				clientFactory.getEventBus());
+                GeolocationOptions options = new GeolocationOptions();
+                options.setMaximumAge(1000);
+                options.setEnableHighAccuracy(true);
 
-		mainActivityManager.setDisplay(mainDisplay);
-		mainContainer.setWidget(mainDisplay);
+                GeolocationCallback callback = new GeolocationCallback() {
 
-		RootPanel.get().add(mainContainer);
+                    @Override
+                    public void onSuccess(Position position) {
+                        // TODO Auto-generated method stub
 
-	}
+                        String message = "position:\n" + position;
+                        logMessageUI(message);
 
-	public void onModuleLoad_singleButton() {
-		// set viewport and other settings for mobile
-		MGWT.applySettings(MGWTSettings.getAppSetting());
+                    }
 
-		// build animation helper and attach it
-		AnimationHelper animationHelper = new AnimationHelper();
-		RootPanel.get().add(animationHelper);
+                    @Override
+                    public void onFailure(PositionError error) {
+                        // TODO Auto-generated method stub
 
-		// build some UI
-		LayoutPanel layoutPanel = new LayoutPanel();
-		Button button = new Button("Hello mgwt");
-		layoutPanel.add(button);
+                    }
+                };
+                phoneGap.getGeolocation().getCurrentPosition(callback, options);
 
-		// animate
-		animationHelper.goTo(layoutPanel, Animation.SLIDE);
+            }
+        });
 
-	}
+        phoneGap.addHandler(new PhoneGapTimeoutHandler() {
 
-	public void onModuleLoad() {
+            @Override
+            public void onPhoneGapTimeout(PhoneGapTimeoutEvent event) {
+                Window.alert("can not load phonegap (timeout)");
 
-		// build some UI
-		LayoutPanel layoutPanel = new LayoutPanel();
-		logTextArea = new TextArea();
-		logTextArea.setVisibleLines(4);
-		logTextArea.setWidth("100%");
-		layoutPanel.add(logTextArea);
-		RootPanel.get().add(layoutPanel);
+            }
+        });
 
-		GWT.setUncaughtExceptionHandler(new GWT.UncaughtExceptionHandler() {
-			@Override
-			public void onUncaughtException(Throwable e) {
-				Window.alert("uncaught: " + e.getLocalizedMessage());
-				Window.alert(e.getMessage());
-				// log.log(Level.SEVERE, "uncaught exception", e);
-				handleExceptionUI(e);
-			}
-		});
+        phoneGap.initializePhoneGap();
 
-		final PhoneGap phoneGap = GWT.create(PhoneGap.class);
+        new Timer() {
+            @Override
+            public void run() {
+                start();
 
-		phoneGap.addHandler(new PhoneGapAvailableHandler() {
+            }
+        }.schedule(1);
+    }
 
-			@Override
-			public void onPhoneGapAvailable(PhoneGapAvailableEvent event) {
-				// startShowCase(phoneGap);
+    private void logMessageUI(String newMessage) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(newMessage);
+        sb.append("\n");
+        String oldMessage = logTextArea.getText();
+        if (oldMessage.length() > LIMIT_LOG) {
+            sb.append(oldMessage.substring(0, 1000));
+        } else {
+            sb.append(oldMessage);
+        }
+        logTextArea.setText(sb.toString());
+    }
 
-				logMessageUI("phone gap event: "
-						+ event.getClass() + ": " + event);
-
-				GeolocationOptions options = new GeolocationOptions();
-				options.setMaximumAge(1000);
-				options.setEnableHighAccuracy(true);
-
-				GeolocationCallback callback = new GeolocationCallback() {
-
-					@Override
-					public void onSuccess(Position position) {
-						// TODO Auto-generated method stub
-
-						String message = "position:\n" + position;
-						logMessageUI(message);
-
-					}
-
-					@Override
-					public void onFailure(PositionError error) {
-						// TODO Auto-generated method stub
-
-					}
-				};
-				phoneGap.getGeolocation().getCurrentPosition(callback, options);
-
-			}
-		});
-
-		phoneGap.addHandler(new PhoneGapTimeoutHandler() {
-
-			@Override
-			public void onPhoneGapTimeout(PhoneGapTimeoutEvent event) {
-				Window.alert("can not load phonegap (timeout)");
-
-			}
-		});
-
-		phoneGap.initializePhoneGap();
-
-		new Timer() {
-			@Override
-			public void run() {
-				start();
-
-			}
-		}.schedule(1);
-	}
-
-	private void logMessageUI(String newMessage) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(newMessage);
-		sb.append("\n");
-		String oldMessage = logTextArea.getText();
-		if (oldMessage.length() > LIMIT_LOG) {
-			sb.append(oldMessage.substring(0, 1000));
-		} else {
-			sb.append(oldMessage);
-		}
-		logTextArea.setText(sb.toString());
-	}
-
-	private void handleExceptionUI(Throwable e) {
-		System.out.println("uncaught exception");
-		e.printStackTrace();
-		String message = "uncaught: " + e.getLocalizedMessage() + "\n"
-				+ e.getMessage();
-		logMessageUI(message);
-	}
+    private void handleExceptionUI(Throwable e) {
+        System.out.println("uncaught exception");
+        e.printStackTrace();
+        String message = "uncaught: " + e.getLocalizedMessage() + "\n" + e.getMessage();
+        logMessageUI(message);
+    }
 }
