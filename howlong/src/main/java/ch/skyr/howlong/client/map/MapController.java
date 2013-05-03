@@ -10,6 +10,8 @@ import org.gwtopenmaps.openlayers.client.layer.OSM;
 
 import ch.skyr.howlong.client.UiLogger;
 
+import com.googlecode.gwtphonegap.client.geolocation.Coordinates;
+
 public class MapController {
     private final UiLogger uiLogger;
     private MapWidget mapWidget;
@@ -28,7 +30,8 @@ public class MapController {
     public void createMapWidget() {
 
         MapOptions defaultMapOptions = new MapOptions();
-        mapWidget = new MapWidget("100%", "100%", defaultMapOptions);
+        // : 960 x 640
+        mapWidget = new MapWidget("100%", "500", defaultMapOptions);
 
         OSM osm_2 = OSM.Mapnik("Mapnik"); // Label for menu 'LayerSwitcher'
         osm_2.setIsBaseLayer(true);
@@ -58,9 +61,11 @@ public class MapController {
                                    // http://docs.openlayers.org/library/spherical_mercator.html
     }
 
-    public void showPosition(LonLat pos) {
+    public void showCoordinates(Coordinates coordinates) {
+        final String coordianateDesc = "(" + coordinates.getLongitude() + ", " + coordinates.getLatitude() + ")";
+        LonLat pos = new LonLat(coordinates.getLongitude(), coordinates.getLatitude());
         pos.transform("EPSG:4326", "EPSG:900913");
         getMapWidget().getMap().panTo(pos);
-        uiLogger.logMessageUI("panTo position: " + pos);
+        uiLogger.logMessageUI("panTo position: " + coordianateDesc);
     }
 }

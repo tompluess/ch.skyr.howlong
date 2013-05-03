@@ -15,15 +15,11 @@
  */
 package ch.skyr.howlong.client;
 
-import org.gwtopenmaps.openlayers.client.LonLat;
-
-import ch.skyr.howlong.client.activities.HomePlace;
 import ch.skyr.howlong.client.map.MapController;
+import ch.skyr.howlong.client.map.SimpleCoordinates;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.place.shared.PlaceHistoryHandler;
-import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextArea;
@@ -36,8 +32,8 @@ import com.googlecode.gwtphonegap.client.geolocation.GeolocationCallback;
 import com.googlecode.gwtphonegap.client.geolocation.GeolocationOptions;
 import com.googlecode.gwtphonegap.client.geolocation.Position;
 import com.googlecode.gwtphonegap.client.geolocation.PositionError;
-import com.googlecode.mgwt.mvp.client.AnimatableDisplay;
-import com.googlecode.mgwt.mvp.client.AnimatingActivityManager;
+import com.googlecode.mgwt.dom.client.event.tap.TapEvent;
+import com.googlecode.mgwt.dom.client.event.tap.TapHandler;
 import com.googlecode.mgwt.mvp.client.Animation;
 import com.googlecode.mgwt.ui.client.MGWT;
 import com.googlecode.mgwt.ui.client.MGWTSettings;
@@ -54,41 +50,6 @@ public class MgwtAppEntryPoint implements EntryPoint, UiLogger {
     private TextArea logTextArea;
     private final int LIMIT_LOG = 1000;
     private final MapController mapController = new MapController(this);
-
-    private void start() {
-
-        // set viewport and other settings for mobile
-        MGWT.applySettings(MGWTSettings.getAppSetting());
-
-        final ClientFactory clientFactory = new ClientFactoryImpl();
-
-        // Start PlaceHistoryHandler with our PlaceHistoryMapper
-        AppPlaceHistoryMapper historyMapper = GWT.create(AppPlaceHistoryMapper.class);
-        final PlaceHistoryHandler historyHandler = new PlaceHistoryHandler(historyMapper);
-
-        historyHandler.register(clientFactory.getPlaceController(), clientFactory.getEventBus(), new HomePlace());
-
-        createPhoneDisplay(clientFactory);
-
-        historyHandler.handleCurrentHistory();
-
-    }
-
-    private void createPhoneDisplay(ClientFactory clientFactory) {
-        AnimatableDisplay display = GWT.create(AnimatableDisplay.class);
-
-        PhoneActivityMapper appActivityMapper = new PhoneActivityMapper(clientFactory);
-
-        PhoneAnimationMapper appAnimationMapper = new PhoneAnimationMapper();
-
-        AnimatingActivityManager activityManager = new AnimatingActivityManager(appActivityMapper, appAnimationMapper,
-                clientFactory.getEventBus());
-
-        activityManager.setDisplay(display);
-
-        RootPanel.get().add(display);
-
-    }
 
     // public void onModuleLoad() {
     public void onModuleLoad_singleButton() {
@@ -112,14 +73,32 @@ public class MgwtAppEntryPoint implements EntryPoint, UiLogger {
     @Override
     public void onModuleLoad() {
 
+        // set viewport and other settings for mobile
+        MGWT.applySettings(MGWTSettings.getAppSetting());
+
+        final AnimationHelper animationHelper = new AnimationHelper();
+        RootPanel.get().add(animationHelper);
+
         // build some UI
         LayoutPanel layoutPanel = new LayoutPanel();
         logTextArea = new TextArea();
         logTextArea.setVisibleLines(4);
         logTextArea.setWidth("100%");
         layoutPanel.add(logTextArea);
+        final Button goHomeButton = new Button("go to africa");
+        goHomeButton.addTapHandler(new TapHandler() {
+            @Override
+            public void onTap(TapEvent event) {
+                mapController.showCoordinates(new SimpleCoordinates(2.5, 6.7));
+                logMessageUI("You clicked: " + goHomeButton);
+            }
+        });
         addMap(layoutPanel);
-        RootPanel.get().add(layoutPanel);
+        layoutPanel.add(goHomeButton);
+
+        // RootPanel.get().add(layoutPanel);
+        // animate
+        animationHelper.goTo(layoutPanel, Animation.SLIDE);
 
         GWT.setUncaughtExceptionHandler(new GWT.UncaughtExceptionHandler() {
             @Override
@@ -131,6 +110,10 @@ public class MgwtAppEntryPoint implements EntryPoint, UiLogger {
             }
         });
 
+        startPhoneGap();
+    }
+
+    private void startPhoneGap() {
         final PhoneGap phoneGap = GWT.create(PhoneGap.class);
 
         phoneGap.addHandler(new PhoneGapAvailableHandler() {
@@ -149,17 +132,14 @@ public class MgwtAppEntryPoint implements EntryPoint, UiLogger {
 
                     @Override
                     public void onSuccess(Position position) {
-                        // TODO Auto-generated method stub
-
                         String message = "position:\n" + position;
                         logMessageUI(message);
-                        mapController.showPosition(new LonLat(position.getCoordinates().getLongitude(), position
-                                .getCoordinates().getLatitude()));
+                        mapController.showCoordinates(position.getCoordinates());
                     }
 
                     @Override
                     public void onFailure(PositionError error) {
-                        // TODO Auto-generated method stub
+                        logMessageUI("cannot getCurrentPosition(): " + error);
 
                     }
                 };
@@ -178,14 +158,6 @@ public class MgwtAppEntryPoint implements EntryPoint, UiLogger {
         });
 
         phoneGap.initializePhoneGap();
-
-        new Timer() {
-            @Override
-            public void run() {
-                start();
-
-            }
-        }.schedule(1);
     }
 
     private void addMap(final LayoutPanel layoutPanel) {
